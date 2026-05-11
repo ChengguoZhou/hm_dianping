@@ -33,7 +33,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public Result sendCode(String phone, HttpSession session) {
         // 1. 校验手机号
-        if (RegexUtils.isPhoneInvalid(phone)){
+        if (RegexUtils.isPhoneInvalid(phone)) {
             // 2.如果不符合，返回错误信息
             return Result.fail("手机号格式错误！");
         }
@@ -51,21 +51,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public Result login(LoginFormDTO loginForm, HttpSession session) {
         // 1.校验手机号
         String phone = loginForm.getPhone();
-        if (RegexUtils.isPhoneInvalid(phone)){
+        if (RegexUtils.isPhoneInvalid(phone)) {
             // 1.1 如果不符合，返回错误信息
             return Result.fail("手机号格式错误！");
         }
         // 2.校验验证码
         Object cacheCode = session.getAttribute(CODE);
         String code = loginForm.getCode();
-        if (cacheCode == null || !cacheCode.toString().equals(code)){
+        if (cacheCode == null || !cacheCode.toString().equals(code)) {
             // 3.不一致，报错
             return Result.fail("验证码错误!");
         }
         // 4.一致，根据手机号查询用户 select * from tb_user where phone = ?
         User user = query().eq("phone", phone).one();
         // 5.判断用户是否存在
-        if (user == null){
+        if (user == null) {
             // 6.不存在，创建新用户并保存
             user = createUserWithPhone(phone);
         }
@@ -78,7 +78,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     /**
      * 根据手机号创建用户
      *
-     * @param  phone 用户电话
+     * @param phone 用户电话
      * @return 用户类
      */
     private User createUserWithPhone(String phone) {

@@ -1,11 +1,11 @@
 package com.hmdp.service;
 
-import com.hmdp.entity.Shop;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hmdp.entity.Shop;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author 虎哥

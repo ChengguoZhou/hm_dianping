@@ -1,11 +1,11 @@
 package com.hmdp.mapper;
 
-import com.hmdp.entity.BlogComments;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.hmdp.entity.BlogComments;
 
 /**
  * <p>
- *  Mapper 接口
+ * Mapper 接口
  * </p>
  *
  * @author 虎哥
