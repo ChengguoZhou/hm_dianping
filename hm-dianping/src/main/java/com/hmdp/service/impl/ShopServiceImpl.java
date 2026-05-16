@@ -9,6 +9,7 @@ import com.hmdp.dto.Result;
 import com.hmdp.entity.Shop;
 import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
+import com.hmdp.utils.CacheClient;
 import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.RedisData;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -37,16 +38,28 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private CacheClient cacheClient;
+
+    /**
+     * 根据id查询店铺
+     * @param id 店铺id
+     * @return Result实体类，封装了查询状态和Shop实体类
+     */
     @Override
     public Result queryShopById(Long id) {
         // 缓存穿透
-        // Shop shop = queryWithPassThrough(id);
+        // lambda表达式简写 id2 -> getById(id2)为this::getByid
+//         Shop shop = cacheClient.queryWithPassThrough(CACHE_SHOP_KEY, id, Shop.class, this::getById,
+//                CACHE_SHOP_TTL, TimeUnit.MINUTES);
 
         // 互斥锁解决缓存击穿
         // Shop shop = queryWithMutex(id);
 
         // 逻辑过期解决缓存击穿
-        Shop shop = queryWithLogicalExpire(id);
+        // TODO
+        Shop shop = cacheClient.queryWithLogicalExpire(CACHE_SHOP_KEY, LOCK_SHOP_KEY, id,
+                Shop.class, this::getById, 10L, TimeUnit.MINUTES);
 
         if (shop == null){
             return Result.fail("店铺不存在！");
@@ -56,55 +69,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
     }
 
-    // 定义全局固定大小的线程池，用来专门执行异步任务
-    public static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
 
-    /**
-     * 采用逻辑过期方式解决缓存击穿问题
-     * @param id 店铺id
-     * @return 店铺Shop实体类
-     */
-    public Shop queryWithLogicalExpire(Long id){
-        String key = CACHE_SHOP_KEY + id;
-        // 1.从redis查询商铺缓存
-        String shopJson = stringRedisTemplate.opsForValue().get(key);
-        // 2.判断Redis查询到的商铺信息是否存在
-        if (StrUtil.isBlank(shopJson)){
-            // 3.不存在，直接返回null
-            return null;
-        }
-        // 4.命中，需要先把json反序列化为对象
-        RedisData redisData = JSONUtil.toBean(shopJson, RedisData.class);
-        Shop shop = JSONUtil.toBean((JSONObject) redisData.getData(), Shop.class);
-        LocalDateTime expireTime = redisData.getExpireTime();
-        // 5.判断是否过期
-        if (expireTime.isAfter(LocalDateTime.now())){
-            // 5.1 未过期，直接返回店铺信息
-            return shop;
-        }
-        // 5.2 已过期，需要缓存重建
-        // 6.缓存重建
-        // 6.1 获取互斥锁
-        String lockKey = LOCK_SHOP_KEY + id;
-        boolean isLock = tryLock(lockKey);
-        // 6.2 判断是否获取锁成功
-        if (isLock){
-            // 6.3 成功，开启独立线程，实现缓存重建
-            CACHE_REBUILD_EXECUTOR.submit(()->{
-                try {
-                    // 重建缓存
-                    this.saveShop2Redis(id, 20L);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                } finally {
-                    // 释放锁
-                    unlock(lockKey);
-                }
-            });
-        }
-        // 6.4 返回过期的商铺信息
-        return shop;
-    }
 
     /**
      * 避免缓存击穿的测试（用JMeter进行测试）
@@ -130,7 +95,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         String lockKey = LOCK_SHOP_KEY + id;
         Shop shop = null;
         try {
-            boolean isLock = tryLock(lockKey);
+            boolean isLock = cacheClient.tryLock(lockKey);
             // 4.2 判断是否获取成功
             if (!isLock){
                 // 4.3 如果失败，则休眠并重试
@@ -154,7 +119,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             throw new RuntimeException(e);
         }
         // 7.释放互斥锁
-        unlock(lockKey);
+        cacheClient.unlock(lockKey);
         // 8.返回
         return shop;
     }
@@ -207,23 +172,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         return Result.ok();
     }
 
-    /**
-     * 获取锁，用setnx命令实现类似功能
-     * @param key setnx变量的名称
-     * @return 获取成功或失败
-     */
-    private boolean tryLock(String key){
-        Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", CACHE_NULL_TTL, TimeUnit.MINUTES);
-        return BooleanUtil.isTrue(flag);
-    }
 
-    /**
-     * 释放锁
-     * @param key setnx变量的名称
-     */
-    private void unlock(String key){
-        stringRedisTemplate.delete(key);
-    }
 
     /**
      * 采用逻辑有效期方式解决缓存击穿问题
