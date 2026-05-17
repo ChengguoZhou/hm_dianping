@@ -20,5 +20,8 @@ public class RedisConstants {
     public static final String FEED_KEY = "feed:";
     public static final String SHOP_GEO_KEY = "shop:geo:";
     public static final String USER_SIGN_KEY = "sign:";
+    public static final String ORDER = "order:";
+    // 全局唯一id前缀
+    public static final String ICR = "icr:";
 
 }
