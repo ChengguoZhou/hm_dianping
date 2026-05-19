@@ -203,14 +203,15 @@ git config --global --add safe.directory E:/Projects/hm-dianping
 
 当前仓库原 README 中已经记录了以下快捷键：
 
-| 快捷键 | 作用 |
-| --- | --- |
-| `Ctrl + H` | 查看类继承层级 |
-| `Alt + Insert` | 快速生成构造器、getter、setter 等 |
-| `Ctrl + Alt + B` | 查看接口或方法的具体实现 |
-| `Ctrl + Alt + T` | 快速包裹 `if/try/for` 等结构 |
-| `Ctrl + I` | 快速实现接口方法 |
-| `Ctrl + E` | 打开最近使用的文件 |
+| 快捷键              | 作用                      |
+|------------------|-------------------------|
+| `Ctrl + H`       | 查看类继承层级                 |
+| `Alt + Insert`   | 快速生成构造器、getter、setter 等 |
+| `Ctrl + Alt + B` | 查看接口或方法的具体实现            |
+| `Ctrl + Alt + T` | 快速包裹 `if/try/for` 等结构   |
+| `Ctrl + I`       | 快速实现接口方法                |
+| `Ctrl + E`       | 打开最近使用的文件               |
+| `Ctrl + D`       | 复制配置                    |
 
 补充一些 Java 开发中更常用的 IDEA 快捷键：
 
