@@ -21,6 +21,7 @@ public class RedisConstants {
     public static final String SHOP_GEO_KEY = "shop:geo:";
     public static final String USER_SIGN_KEY = "sign:";
     public static final String ORDER = "order:";
+    public static final String LOCK_ORDER_KEY = "lock:order:";
     // 全局唯一id前缀
     public static final String ICR = "icr:";
 

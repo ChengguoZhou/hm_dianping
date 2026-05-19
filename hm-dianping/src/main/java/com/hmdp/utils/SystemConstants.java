@@ -7,4 +7,6 @@ public class SystemConstants {
     public static final int MAX_PAGE_SIZE = 10;
     public static final String CODE = "code";
     public static final String USER = "user";
+    public static final String REDIS_ADDRESS = "redis://192.168.42.130:6379";
+    public static final String REDIS_PASSWORD = "root";
 }

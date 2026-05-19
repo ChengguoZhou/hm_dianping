@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * SimpleRedisLock
  *
- * <p>功能描述：</p>
+ * <p>功能描述：Redis锁简单实现</p>
  *
  * @author 19808
  * @since 2026/5/19

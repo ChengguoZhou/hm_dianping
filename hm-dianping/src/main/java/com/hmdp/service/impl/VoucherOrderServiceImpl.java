@@ -11,6 +11,8 @@ import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.NonNull;
@@ -19,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+
+import static com.hmdp.utils.RedisConstants.ORDER;
 
 /**
  * <p>
@@ -38,6 +42,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
      * 抢购秒杀优惠券
@@ -67,9 +74,10 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         Long userId = UserHolder.getUser().getId();
 
         // 创建锁对象
-        SimpleRedisLock lock = new SimpleRedisLock(RedisConstants.ORDER + userId, stringRedisTemplate);
+        // SimpleRedisLock lock = new SimpleRedisLock(ORDER + userId, stringRedisTemplate);
+        RLock lock = redissonClient.getLock(RedisConstants.LOCK_ORDER_KEY + userId);
         // 获取锁
-        boolean isLock = lock.tryLock(1200);
+        boolean isLock = lock.tryLock();
         // 判断是否获取锁成功
         if (!isLock){
             // 获取锁失败，返回错误或重试
@@ -121,7 +129,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         // 7.创建订单
         VoucherOrder voucherOrder = new VoucherOrder();
         // 7.1 订单id
-        long orderId = redisIdWorker.nextId(RedisConstants.ORDER);
+        long orderId = redisIdWorker.nextId(ORDER);
         voucherOrder.setId(orderId);
         // 7.2 用户id
         voucherOrder.setUserId(userId);
