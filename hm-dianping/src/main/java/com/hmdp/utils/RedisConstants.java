@@ -4,7 +4,8 @@ public class RedisConstants {
     public static final String LOGIN_CODE_KEY = "login:code:";
     public static final Long LOGIN_CODE_TTL = 2L;
     public static final String LOGIN_USER_KEY = "login:token:";
-    public static final Long LOGIN_USER_TTL = 30L;
+    // TODO 为了测试方便，这里将30L
+    public static final Long LOGIN_USER_TTL = 1440L;
 
     public static final Long CACHE_NULL_TTL = 2L;
 
