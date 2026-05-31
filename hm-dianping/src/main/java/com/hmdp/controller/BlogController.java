@@ -32,13 +32,7 @@ public class BlogController {
 
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
-        // 获取登录用户
-        UserDTO user = UserHolder.getUser();
-        blog.setUserId(user.getId());
-        // 保存探店博文
-        blogService.save(blog);
-        // 返回id
-        return Result.ok(blog.getId());
+        return blogService.saveBlog(blog);
     }
 
     @PutMapping("/like/{id}")
@@ -46,6 +40,11 @@ public class BlogController {
         return blogService.likeBlog(id);
     }
 
+    /**
+     * 查询我的博客
+     * @param current 当前页
+     * @return 当前页博客数据
+     */
     @GetMapping("/of/me")
     public Result queryMyBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
         // 获取登录用户
@@ -71,5 +70,33 @@ public class BlogController {
     @GetMapping("/likes/{id}")
     public Result queryBlogLikes(@PathVariable("id") Long id){
         return blogService.queryBlogLikes(id);
+    }
+
+    /**
+     * 获取用户博客 /of/user?id=1&current=1
+     * @param current 当前页，默认为1
+     * @param id 待查询用户id
+     * @return List<Blog>,封装在Result中
+     */
+    @GetMapping("/of/user")
+    public Result queryBlogByUserId(
+            @RequestParam(value = "current", defaultValue = "1") Integer current,
+            @RequestParam("id") Long id){
+        // 根据用户查询当前页
+        Page<Blog> page = blogService.query().eq("user_id", id).page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
+        // 获取当前页的数据信息
+        List<Blog> records = page.getRecords();
+        return Result.ok(records);
+    }
+
+    /**
+     * 查询关注的人的博客
+     * @param max 待查询时间戳最大值
+     * @param offset 偏移量（第一次查询为0，后面为上一次查询和最小值一样的元素个数）
+     * @return Result实体类，封装ScrollResult
+     */
+    @GetMapping("/of/follow")
+    public Result queryBlogOfFollow(@RequestParam("lastId") Long max, @RequestParam(value = "offset", defaultValue = "0") Integer offset){
+        return blogService.queryBlogOfFollow(max, offset);
     }
 }
